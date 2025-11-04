@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yılan Oyunu</title>
+<style>
+  body {
+    background-color: #111;
+    color: #fff;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+  canvas {
+    background-color: #222;
+    border: 2px solid #0f0;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+  <h1>🐍 Yılan Oyunu</h1>
+  <canvas id="oyun" width="400" height="400"></canvas>
+  <h2>Skor: <span id="skor">0</span></h2>
+
+<script>
+  const canvas = document.getElementById('oyun');
+  const ctx = canvas.getContext('2d');
+  const skorYazi = document.getElementById('skor');
+
+  const kutu = 20; // her kare boyutu
+  let yilan = [{x: 9 * kutu, y: 10 * kutu}];
+  let yem = {
+    x: Math.floor(Math.random() * 19 + 1) * kutu,
+    y: Math.floor(Math.random() * 19 + 1) * kutu
+  };
+  let yon = null;
+  let skor = 0;
+
+  document.addEventListener('keydown', yonDegistir);
+
+  function yonDegistir(e) {
+    if (e.key === 'ArrowLeft' && yon !== 'RIGHT') yon = 'LEFT';
+    else if (e.key === 'ArrowUp' && yon !== 'DOWN') yon = 'UP';
+    else if (e.key === 'ArrowRight' && yon !== 'LEFT') yon = 'RIGHT';
+    else if (e.key === 'ArrowDown' && yon !== 'UP') yon = 'DOWN';
+  }
+
+  function ciz() {
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, 400, 400);
+
+    // yemi çiz
+    ctx.fillStyle = 'red';
+    ctx.fillRect(yem.x, yem.y, kutu, kutu);
+
+    // yılanı çiz
+    for (let i = 0; i < yilan.length; i++) {
+      ctx.fillStyle = (i === 0) ? '#0f0' : '#090';
+      ctx.fillRect(yilan[i].x, yilan[i].y, kutu, kutu);
+    }
+
+    // yılanın hareketi
+    let yBas = yilan[0].x;
+    let ySon = yilan[0].y;
+
+    if (yon === 'LEFT') yBas -= kutu;
+    if (yon === 'UP') ySon -= kutu;
+    if (yon === 'RIGHT') yBas += kutu;
+    if (yon === 'DOWN') ySon += kutu;
+
+    // yemi yedi mi?
+    if (yBas === yem.x && ySon === yem.y) {
+      skor++;
+      skorYazi.textContent = skor;
+      yem = {
+        x: Math.floor(Math.random() * 19 + 1) * kutu,
+        y: Math.floor(Math.random() * 19 + 1) * kutu
+      };
+    } else {
+      yilan.pop(); // kuyruğu sil
+    }
+
+    const yeniBas = {x: yBas, y: ySon};
+
+    // çarpışma kontrolü
+    if (
+      yBas < 0 || yBas >= 400 || ySon < 0 || ySon >= 400 ||
+      carpmaKontrol(yeniBas, yilan)
+    ) {
+      clearInterval(oyun);
+      alert('💀 Oyun bitti! Skor: ' + skor);
+      document.location.reload();
+    }
+
+    yilan.unshift(yeniBas);
+  }
+
+  function carpmaKontrol(bas, dizi) {
+    for (let i = 0; i < dizi.length; i++) {
+      if (bas.x === dizi[i].x && bas.y === dizi[i].y) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const oyun = setInterval(ciz, 120);
+</script>
+</body>
+</html>
